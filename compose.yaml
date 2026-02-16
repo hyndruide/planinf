@@ -1,0 +1,12 @@
+services:
+  web:
+    build: 
+      context: app
+      target: builder # Utilise l'étape builder de ton Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # <--- MONTE TON CODE ICI (Local:Conteneur)
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
