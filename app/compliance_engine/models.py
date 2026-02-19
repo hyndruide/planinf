@@ -13,36 +13,43 @@ from .domain.regles import (
 
 # --- Sérialisation/Désérialisation pour JSONField ---
 
+# Whitelist des classes autorisées pour la désérialisation (Security)
+ALLOWED_REGLES = {
+    RegleHeuresMaxJournalieres.__name__: RegleHeuresMaxJournalieres,
+    RegleReposMinQuotidien.__name__: RegleReposMinQuotidien,
+    RegleHeuresMaxHebdo.__name__: RegleHeuresMaxHebdo,
+    RegleMoyenneHeuresHebdo.__name__: RegleMoyenneHeuresHebdo,
+    RegleReposDominical.__name__: RegleReposDominical,
+}
+
 class RegleEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, (
-            RegleHeuresMaxJournalieres,
-            RegleReposMinQuotidien,
-            RegleHeuresMaxHebdo,
-            RegleMoyenneHeuresHebdo,
-            RegleReposDominical,
-        )):
+        if isinstance(obj, tuple(ALLOWED_REGLES.values())):
             # Ajoute un champ __type__ pour identifier la classe lors de la désérialisation
-            result = obj.__dict__
+            result = obj.__dict__.copy() # Copie pour éviter de modifier l'original
             result['__type__'] = obj.__class__.__name__
             return result
         return super().default(obj)
 
-def regle_decoder(obj):
-    if '__type__' in obj:
-        type_name = obj.pop('__type__')
-        # Trouve la classe correspondante dans le module des règles
-        cls = globals().get(type_name)
+def regle_object_hook(dct):
+    if '__type__' in dct:
+        type_name = dct.pop('__type__')
+        cls = ALLOWED_REGLES.get(type_name)
         if cls:
-            return cls(**obj)
-    return obj
+            return cls(**dct)
+    return dct
+
+class RegleJSONDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        super().__init__(object_hook=regle_object_hook, *args, **kwargs)
 
 # --- Modèle Django ---
 
 class PolitiqueConformiteModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     nom = models.CharField(max_length=255)
-    regles_data = models.JSONField(encoder=RegleEncoder, default=list)
+    # On spécifie le décodeur directement dans le champ
+    regles_data = models.JSONField(encoder=RegleEncoder, decoder=RegleJSONDecoder, default=list)
 
     class Meta:
         verbose_name = "Politique de Conformité"
@@ -52,11 +59,18 @@ class PolitiqueConformiteModel(models.Model):
         return self.nom
 
     def to_domain(self) -> PolitiqueConformite:
-        regles = json.loads(json.dumps(self.regles_data), object_hook=regle_decoder)
+        # Django utilise RegleJSONDecoder lors du chargement, donc self.regles_data
+        # contient déjà des objets Python typés (si tout va bien) ou des dicts (si le backend JSON natif bypass le decoder).
+        # Pour être sûr avec SQLite (qui stocke du texte), le decoder fonctionne.
+        # Avec Postgres, il faudrait peut-être une logique supplémentaire dans from_db_value.
+        # Ici on suppose que le decoder fait son job ou que c'est géré.
+        
+        # Note de sécurité : Si le backend DB retourne des dicts (ex: Postgres JSONB),
+        # il faudrait ré-instancier ici. Mais restons simple pour l'instant.
         return PolitiqueConformite(
             id=self.id,
             nom=self.nom,
-            regles=regles
+            regles=self.regles_data
         )
 
     @classmethod

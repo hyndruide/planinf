@@ -26,8 +26,8 @@ class AffectationModel(models.Model):
     def to_domain(self) -> Affectation:
         return Affectation(
             id=self.id,
-            agent_id=self.agent.id,
-            trame_id=self.trame.id,
+            agent_id=self.agent_id,
+            trame_id=self.trame_id,
             date_debut=self.date_debut
         )
 
