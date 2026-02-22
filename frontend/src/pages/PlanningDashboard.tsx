@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { usePlanning } from '../hooks/usePlanning';
 import { PlanningTable } from '../components/PlanningTable';
-import { CoverageSummary } from '../components/CoverageSummary';
 
 export const PlanningDashboard: React.FC = () => {
   // We use fixed params for now as per the mock strategy
@@ -36,13 +35,9 @@ export const PlanningDashboard: React.FC = () => {
         </h1>
       </header>
 
-      <section style={{ marginBottom: '40px' }}>
-        <CoverageSummary coverageData={coverageData} />
-      </section>
-
       <section>
         <h3 style={{ marginBottom: '15px' }}>Grille des Affectations</h3>
-        <PlanningTable agents={planningData} />
+        <PlanningTable agents={planningData} coverageData={coverageData} />
       </section>
     </div>
   );

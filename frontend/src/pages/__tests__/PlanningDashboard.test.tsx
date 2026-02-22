@@ -53,12 +53,11 @@ describe('PlanningDashboard Page', () => {
 
     // Check titles
     expect(screen.getByText(/Tableau de Bord de Planification/i)).toBeInTheDocument();
-    expect(screen.getByText(/Couverture Quotidienne/i)).toBeInTheDocument();
     
-    // Check if sub-components are rendered by looking for their content
+    // Check if table is rendered by looking for its content
     expect(screen.getByText('Alice')).toBeInTheDocument();
     
-    // Using getAllByText because dates appear in both CoverageSummary and PlanningTable
+    // Check if dates are rendered
     expect(screen.getAllByText(mockDayCoverage[0].date).length).toBeGreaterThanOrEqual(1);
   });
 
