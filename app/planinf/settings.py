@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'compliance_engine',
     'demand_management',
     'rest_framework',
+    'solver_engine',
 ]
 
 MIDDLEWARE = [
