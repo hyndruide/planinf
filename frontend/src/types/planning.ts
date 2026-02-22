@@ -23,11 +23,28 @@ export interface DayCoverage {
   gap: number;
 }
 
+export interface Agent {
+  id: string;
+  nom: string;
+  quotite: number;
+}
+
+export interface Politique {
+  id: string;
+  nom: string;
+}
+
+export interface DailyRequirementInput {
+  day: string; // "Lundi", "Mardi", etc.
+  count: number;
+}
+
 export interface GeneratePlanningPayload {
   agent_ids: string[];
-  politique_id: string;
+  politique_ids: string[];
   duree_cycle: number;
   date_debut: string; // YYYY-MM-DD
+  daily_requirements?: DailyRequirementInput[];
 }
 
 export interface GeneratePlanningResponse {

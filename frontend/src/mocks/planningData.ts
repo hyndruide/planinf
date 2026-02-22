@@ -1,4 +1,4 @@
-import type { AgentPlanning, DayCoverage, PlannedDay } from '../types/planning';
+import type { AgentPlanning, DayCoverage, PlannedDay, Agent, Politique, DailyRequirementInput } from '../types/planning';
 
 // Helper to generate dates
 const generateDates = (startDate: string, days: number): string[] => {
@@ -32,6 +32,30 @@ const buildPlanning = (offset: number): PlannedDay[] => {
     };
   });
 };
+
+export const mockAgents: Agent[] = [
+  { id: 'uuid-1', nom: 'Alice', quotite: 1.0 },
+  { id: 'uuid-2', nom: 'Bob', quotite: 1.0 },
+  { id: 'uuid-3', nom: 'Charlie', quotite: 0.8 },
+  { id: 'uuid-4', nom: 'Diana', quotite: 1.0 },
+  { id: 'uuid-5', nom: 'Eve', quotite: 0.5 },
+];
+
+export const mockPolitiques: Politique[] = [
+  { id: 'pol-1', nom: 'Repos Standard (11h)' },
+  { id: 'pol-2', nom: 'Repos Réduit (9h)' },
+  { id: 'pol-3', nom: 'Cycle 12h Strict' },
+];
+
+export const mockDefaultRequirements: DailyRequirementInput[] = [
+  { day: 'Lundi', count: 2 },
+  { day: 'Mardi', count: 2 },
+  { day: 'Mercredi', count: 2 },
+  { day: 'Jeudi', count: 2 },
+  { day: 'Vendredi', count: 2 },
+  { day: 'Samedi', count: 1 },
+  { day: 'Dimanche', count: 1 },
+];
 
 export const mockAgentPlanning: AgentPlanning[] = [
   {

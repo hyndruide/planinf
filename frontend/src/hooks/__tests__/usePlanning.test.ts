@@ -73,7 +73,7 @@ describe('usePlanning Hook', () => {
     
     const payload: GeneratePlanningPayload = {
       agent_ids: ['1', '2'],
-      politique_id: 'pol-1',
+      politique_ids: ['pol-1'],
       duree_cycle: 84,
       date_debut: '2026-01-01'
     };
@@ -98,7 +98,7 @@ describe('usePlanning Hook', () => {
     
     const payload: GeneratePlanningPayload = {
       agent_ids: ['1', '2'],
-      politique_id: 'pol-1',
+      politique_ids: ['pol-1'],
       duree_cycle: 84,
       date_debut: '2026-01-01'
     };

@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PlanningDashboard } from '../PlanningDashboard';
 import { usePlanning } from '../../hooks/usePlanning';
-import { mockAgentPlanning, mockDayCoverage } from '../../mocks/planningData';
+import { mockAgentPlanning, mockDayCoverage, mockAgents, mockPolitiques, mockDefaultRequirements } from '../../mocks/planningData';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import * as configurationHook from '../../hooks/useConfiguration';
 
-// Mock the hook
+// Mock the hooks
 vi.mock('../../hooks/usePlanning');
+vi.mock('../../hooks/useConfiguration');
 
 describe('PlanningDashboard Page', () => {
   const mockTriggerFetch = vi.fn();
@@ -16,6 +18,14 @@ describe('PlanningDashboard Page', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    vi.mocked(configurationHook.useConfiguration).mockReturnValue({
+      agents: mockAgents,
+      politiques: mockPolitiques,
+      defaultRequirements: mockDefaultRequirements,
+      isLoading: false,
+      error: null
+    });
   });
 
   it('should render loading state initially', () => {
@@ -87,18 +97,18 @@ describe('PlanningDashboard Page', () => {
     render(<PlanningDashboard />);
     
     // Form is not visible initially
-    expect(screen.queryByText(/Générer un Nouveau Planning/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Configuration du Planning/i)).not.toBeInTheDocument();
     
     // Click button to show form
     const toggleButton = screen.getByRole('button', { name: /Générer un planning/i });
     await user.click(toggleButton);
     
-    expect(screen.getByText(/Générer un Nouveau Planning/i)).toBeInTheDocument();
+    expect(screen.getByText(/Configuration du Planning/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Masquer le générateur/i })).toBeInTheDocument();
     
     // Click to hide again
     await user.click(screen.getByRole('button', { name: /Masquer le générateur/i }));
-    expect(screen.queryByText(/Générer un Nouveau Planning/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Configuration du Planning/i)).not.toBeInTheDocument();
   });
 
   it('should submit GeneratePlanningForm and call generateSchedule', async () => {
@@ -118,15 +128,16 @@ describe('PlanningDashboard Page', () => {
     // Open form
     await user.click(screen.getByRole('button', { name: /Générer un planning/i }));
     
-    // Submit form
+    // Submit form (it will use default pre-selections from mock data)
     await user.click(screen.getByRole('button', { name: /Générer \(Solveur\)/i }));
     
     expect(mockGenerateSchedule).toHaveBeenCalledTimes(1);
     expect(mockGenerateSchedule).toHaveBeenCalledWith({
       date_debut: '2026-01-01',
       duree_cycle: 84,
-      politique_id: 'pol-1',
-      agent_ids: ['uuid-1', 'uuid-2']
+      politique_ids: [mockPolitiques[0].id],
+      agent_ids: mockAgents.map(a => a.id),
+      daily_requirements: mockDefaultRequirements
     });
   });
 

@@ -1,5 +1,5 @@
-import type { AgentPlanning, DayCoverage, GeneratePlanningPayload, GeneratePlanningResponse } from '../types/planning';
-import { mockAgentPlanning, mockDayCoverage } from '../mocks/planningData';
+import type { AgentPlanning, DayCoverage, GeneratePlanningPayload, GeneratePlanningResponse, Agent, Politique, DailyRequirementInput } from '../types/planning';
+import { mockAgentPlanning, mockDayCoverage, mockAgents, mockPolitiques, mockDefaultRequirements } from '../mocks/planningData';
 
 // Simulated network delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -22,6 +22,21 @@ export const fetchCoverageAnalysis = async (
 ): Promise<DayCoverage[]> => {
   await delay(500);
   return mockDayCoverage;
+};
+
+export const fetchAllAgents = async (): Promise<Agent[]> => {
+  await delay(300);
+  return mockAgents;
+};
+
+export const fetchAllPolitiques = async (): Promise<Politique[]> => {
+  await delay(300);
+  return mockPolitiques;
+};
+
+export const fetchDefaultRequirements = async (): Promise<DailyRequirementInput[]> => {
+  await delay(300);
+  return mockDefaultRequirements;
 };
 
 export const generatePlanning = async (
