@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'pattern_engine',
     'applied_planning',
     'compliance_engine',
+    'demand_management',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
