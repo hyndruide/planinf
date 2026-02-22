@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { PlanningDashboard } from '../PlanningDashboard';
 import { usePlanning } from '../../hooks/usePlanning';
 import { mockAgentPlanning, mockDayCoverage } from '../../mocks/planningData';
@@ -11,6 +12,7 @@ vi.mock('../../hooks/usePlanning');
 
 describe('PlanningDashboard Page', () => {
   const mockTriggerFetch = vi.fn();
+  const mockGenerateSchedule = vi.fn().mockResolvedValue({});
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,8 +23,10 @@ describe('PlanningDashboard Page', () => {
       planningData: [],
       coverageData: [],
       isLoading: true,
+      isGenerating: false,
       error: null,
-      triggerFetch: mockTriggerFetch
+      triggerFetch: mockTriggerFetch,
+      generateSchedule: mockGenerateSchedule
     });
 
     render(<PlanningDashboard />);
@@ -34,8 +38,10 @@ describe('PlanningDashboard Page', () => {
       planningData: [],
       coverageData: [],
       isLoading: false,
+      isGenerating: false,
       error: 'Erreur API',
-      triggerFetch: mockTriggerFetch
+      triggerFetch: mockTriggerFetch,
+      generateSchedule: mockGenerateSchedule
     });
 
     render(<PlanningDashboard />);
@@ -47,8 +53,10 @@ describe('PlanningDashboard Page', () => {
       planningData: mockAgentPlanning,
       coverageData: mockDayCoverage,
       isLoading: false,
+      isGenerating: false,
       error: null,
-      triggerFetch: mockTriggerFetch
+      triggerFetch: mockTriggerFetch,
+      generateSchedule: mockGenerateSchedule
     });
 
     render(<PlanningDashboard />);
@@ -64,13 +72,73 @@ describe('PlanningDashboard Page', () => {
     expect(screen.getAllByText(formattedDate).length).toBeGreaterThanOrEqual(1);
   });
 
+  it('should toggle GeneratePlanningForm visibility', async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlanning).mockReturnValue({
+      planningData: mockAgentPlanning,
+      coverageData: mockDayCoverage,
+      isLoading: false,
+      isGenerating: false,
+      error: null,
+      triggerFetch: mockTriggerFetch,
+      generateSchedule: mockGenerateSchedule
+    });
+
+    render(<PlanningDashboard />);
+    
+    // Form is not visible initially
+    expect(screen.queryByText(/Générer un Nouveau Planning/i)).not.toBeInTheDocument();
+    
+    // Click button to show form
+    const toggleButton = screen.getByRole('button', { name: /Générer un planning/i });
+    await user.click(toggleButton);
+    
+    expect(screen.getByText(/Générer un Nouveau Planning/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Masquer le générateur/i })).toBeInTheDocument();
+    
+    // Click to hide again
+    await user.click(screen.getByRole('button', { name: /Masquer le générateur/i }));
+    expect(screen.queryByText(/Générer un Nouveau Planning/i)).not.toBeInTheDocument();
+  });
+
+  it('should submit GeneratePlanningForm and call generateSchedule', async () => {
+    const user = userEvent.setup();
+    vi.mocked(usePlanning).mockReturnValue({
+      planningData: mockAgentPlanning,
+      coverageData: mockDayCoverage,
+      isLoading: false,
+      isGenerating: false,
+      error: null,
+      triggerFetch: mockTriggerFetch,
+      generateSchedule: mockGenerateSchedule
+    });
+
+    render(<PlanningDashboard />);
+    
+    // Open form
+    await user.click(screen.getByRole('button', { name: /Générer un planning/i }));
+    
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /Générer \(Solveur\)/i }));
+    
+    expect(mockGenerateSchedule).toHaveBeenCalledTimes(1);
+    expect(mockGenerateSchedule).toHaveBeenCalledWith({
+      date_debut: '2026-01-01',
+      duree_cycle: 84,
+      politique_id: 'pol-1',
+      agent_ids: ['uuid-1', 'uuid-2']
+    });
+  });
+
   it('should call triggerFetch on mount', () => {
     vi.mocked(usePlanning).mockReturnValue({
       planningData: [],
       coverageData: [],
       isLoading: false,
+      isGenerating: false,
       error: null,
-      triggerFetch: mockTriggerFetch
+      triggerFetch: mockTriggerFetch,
+      generateSchedule: mockGenerateSchedule
     });
 
     render(<PlanningDashboard />);
