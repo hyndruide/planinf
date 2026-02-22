@@ -4,6 +4,7 @@ from enum import Enum
 class ShiftType(Enum):
     WORK = "WORK"
     REST = "REST"
+    ABSENCE = "ABSENCE"
 
 class Shift:
     def __init__(self, type: ShiftType, duration: int):

@@ -35,13 +35,20 @@ class TrameModel(models.Model):
 
     # Méthode pour convertir le modèle ORM en objet de domaine Trame
     def to_domain(self) -> Trame:
-        # sequence_data est déjà décodé par shift_decoder grâce à JSONField
-        sequence = self.sequence_data
+        # sequence_data peut être une liste de dicts si récupéré de la DB
+        # On s'assure que chaque élément est un objet Shift
+        sequence = []
+        for item in self.sequence_data:
+            if isinstance(item, dict):
+                sequence.append(shift_decoder(item))
+            else:
+                sequence.append(item)
+        
         return Trame(
             id=self.id,
             nom=self.nom,
             duree_cycle_jours=self.duree_cycle_jours,
-            sequence=sequence # sequence_data contient déjà des objets Shift
+            sequence=sequence
         )
 
     # Méthode pour mettre à jour le modèle ORM à partir d'un objet de domaine Trame

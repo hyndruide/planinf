@@ -41,6 +41,12 @@ class Trame:
     def sequence(self) -> List[Shift]:
         return self._sequence
 
+    def get_shift_at_day(self, day_index: int) -> Shift:
+        """Retourne le shift correspondant à un index de jour donné, en gérant la cyclicité."""
+        # On utilise le modulo pour rester dans les limites de la séquence (cycle)
+        cycle_index = day_index % self.duree_cycle_jours
+        return self.sequence[cycle_index]
+
     def __eq__(self, other):
         if not isinstance(other, Trame):
             return NotImplemented
