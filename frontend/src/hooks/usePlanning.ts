@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AgentPlanning, DayCoverage } from '../types/planning';
+import type { AgentPlanning, DayCoverage } from '../types/planning';
 import { fetchFullPlanning, fetchCoverageAnalysis } from '../services/planningService';
 
 interface UsePlanningResult {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CoverageSummary } from '../CoverageSummary';
-import { DayCoverage } from '../../types/planning';
+import type { DayCoverage } from '../../types/planning';
 
 describe('CoverageSummary Component', () => {
   it('should render a list of coverage items', () => {

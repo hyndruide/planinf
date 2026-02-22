@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mockAgentPlanning, mockDayCoverage } from '../planningData';
-import { AgentPlanning, DayCoverage } from '../../types/planning';
+import type { AgentPlanning, DayCoverage } from '../../types/planning';
 
 describe('Planning Mock Data', () => {
   it('should have mockAgentPlanning exported as an array', () => {

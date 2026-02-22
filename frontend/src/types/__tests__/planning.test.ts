@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ShiftType, AgentPlanning, DayCoverage } from '../planning';
+import type { ShiftType, AgentPlanning, DayCoverage } from '../planning';
 
 describe('Planning Domain Types', () => {
   it('should have valid ShiftType values', () => {

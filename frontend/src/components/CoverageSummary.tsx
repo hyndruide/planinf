@@ -1,5 +1,5 @@
 import React from 'react';
-import { DayCoverage } from '../types/planning';
+import type { DayCoverage } from '../types/planning';
 
 interface CoverageSummaryProps {
   coverageData: DayCoverage[];

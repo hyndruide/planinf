@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PlanningTable } from '../PlanningTable';
-import { AgentPlanning } from '../../types/planning';
+import type { AgentPlanning } from '../../types/planning';
 
 describe('PlanningTable Component', () => {
   const mockPlanning: AgentPlanning[] = [

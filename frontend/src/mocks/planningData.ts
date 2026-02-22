@@ -1,4 +1,4 @@
-import { AgentPlanning, DayCoverage, PlannedDay } from '../types/planning';
+import type { AgentPlanning, DayCoverage, PlannedDay } from '../types/planning';
 
 // Helper to generate dates
 const generateDates = (startDate: string, days: number): string[] => {

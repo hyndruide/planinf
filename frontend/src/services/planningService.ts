@@ -1,4 +1,4 @@
-import { AgentPlanning, DayCoverage } from '../types/planning';
+import type { AgentPlanning, DayCoverage } from '../types/planning';
 import { mockAgentPlanning, mockDayCoverage } from '../mocks/planningData';
 
 // Simulated network delay
@@ -6,9 +6,9 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const fetchFullPlanning = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  startDate: string,
+  _startDate: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  weeks?: number
+  _weeks?: number
 ): Promise<AgentPlanning[]> => {
   await delay(500);
   return mockAgentPlanning;
@@ -16,9 +16,9 @@ export const fetchFullPlanning = async (
 
 export const fetchCoverageAnalysis = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  startDate: string,
+  _startDate: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  endDate: string
+  _endDate: string
 ): Promise<DayCoverage[]> => {
   await delay(500);
   return mockDayCoverage;

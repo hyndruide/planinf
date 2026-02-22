@@ -1,5 +1,5 @@
 import React from 'react';
-import { AgentPlanning } from '../types/planning';
+import type { AgentPlanning } from '../types/planning';
 
 interface PlanningTableProps {
   agents: AgentPlanning[];
