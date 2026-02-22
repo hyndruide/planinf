@@ -34,18 +34,28 @@ describe('PlanningTable Component', () => {
     expect(screen.getByText('Bob')).toBeInTheDocument();
   });
 
-  it('should render dates in the header', () => {
+  it('should render dual-row dates in the header in French', () => {
     render(<PlanningTable agents={mockPlanning} coverageData={mockCoverage} />);
-    expect(screen.getByText('2026-01-01')).toBeInTheDocument();
-    expect(screen.getByText('2026-01-02')).toBeInTheDocument();
+    // 2026-01-01 is a Thursday (jeudi)
+    expect(screen.getByText('01/01')).toBeInTheDocument();
+    expect(screen.getByText('jeu.')).toBeInTheDocument();
+    
+    // 2026-01-02 is a Friday (vendredi)
+    expect(screen.getByText('02/01')).toBeInTheDocument();
+    expect(screen.getByText('ven.')).toBeInTheDocument();
   });
 
-  it('should render shift cells with correct content', () => {
+  it('should render shift cells with icons and duration', () => {
     render(<PlanningTable agents={mockPlanning} coverageData={mockCoverage} />);
     
     const aliceRow = screen.getByText('Alice').closest('tr');
-    expect(aliceRow).toContainElement(screen.getAllByText('WORK')[0]);
-    expect(aliceRow).toContainElement(screen.getAllByText('REST')[0]);
+    
+    // Check for icons using data-testid
+    expect(aliceRow?.querySelector('[data-testid="icon-work"]')).toBeInTheDocument();
+    expect(aliceRow?.querySelector('[data-testid="icon-rest"]')).toBeInTheDocument();
+    
+    // Duration is rendered for WORK
+    expect(aliceRow).toContainElement(screen.getAllByText('(12h)')[0]);
   });
 
   it('should render coverage data in footer', () => {
