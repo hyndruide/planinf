@@ -1,4 +1,4 @@
-import type { AgentPlanning, DayCoverage } from '../types/planning';
+import type { AgentPlanning, DayCoverage, GeneratePlanningPayload, GeneratePlanningResponse } from '../types/planning';
 import { mockAgentPlanning, mockDayCoverage } from '../mocks/planningData';
 
 // Simulated network delay
@@ -22,4 +22,13 @@ export const fetchCoverageAnalysis = async (
 ): Promise<DayCoverage[]> => {
   await delay(500);
   return mockDayCoverage;
+};
+
+export const generatePlanning = async (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _payload: GeneratePlanningPayload
+): Promise<GeneratePlanningResponse> => {
+  // Simulate longer calculation for solver
+  await delay(1500);
+  return { message: 'Schedule generated successfully' };
 };

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchFullPlanning, fetchCoverageAnalysis } from '../planningService';
+import { fetchFullPlanning, fetchCoverageAnalysis, generatePlanning } from '../planningService';
 import { mockAgentPlanning, mockDayCoverage } from '../../mocks/planningData';
+import type { GeneratePlanningPayload } from '../../types/planning';
 
 describe('Planning Service (Mocked API)', () => {
   beforeEach(() => {
@@ -29,5 +30,22 @@ describe('Planning Service (Mocked API)', () => {
     
     const data = await promise;
     expect(data).toEqual(mockDayCoverage);
+  });
+
+  it('generatePlanning should resolve with success message after a delay', async () => {
+    const payload: GeneratePlanningPayload = {
+      agent_ids: ['uuid-1', 'uuid-2'],
+      politique_id: 'pol-1',
+      duree_cycle: 84,
+      date_debut: '2026-01-01'
+    };
+
+    const promise = generatePlanning(payload);
+    
+    // Fast-forward time
+    vi.advanceTimersByTime(1500);
+    
+    const data = await promise;
+    expect(data.message).toBe('Schedule generated successfully');
   });
 });
