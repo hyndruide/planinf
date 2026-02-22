@@ -4,7 +4,7 @@ from datetime import date
 from .quotite import Quotite
 
 class Agent:
-    def __init__(self, id: UUID, nom: str, quotite: Quotite, date_debut_cycle: date):
+    def __init__(self, id: UUID, nom: str, quotite: Quotite, date_debut_cycle: date, est_surnumeraire: bool = False):
         if not isinstance(id, UUID):
             raise TypeError("L'ID doit être une instance de UUID.")
         if not nom or not isinstance(nom, str):
@@ -13,15 +13,18 @@ class Agent:
             raise TypeError("La quotité doit être une instance de Quotite.")
         if not isinstance(date_debut_cycle, date):
             raise TypeError("La date de début de cycle doit être une instance de date.")
+        if not isinstance(est_surnumeraire, bool):
+            raise TypeError("est_surnumeraire doit être un booléen.")
 
         self._id = id
         self._nom = nom
         self._quotite = quotite
         self._date_debut_cycle = date_debut_cycle
+        self._est_surnumeraire = est_surnumeraire
 
     @classmethod
-    def create(cls, nom: str, quotite: Quotite, date_debut_cycle: date) -> 'Agent':
-        return cls(uuid4(), nom, quotite, date_debut_cycle)
+    def create(cls, nom: str, quotite: Quotite, date_debut_cycle: date, est_surnumeraire: bool = False) -> 'Agent':
+        return cls(uuid4(), nom, quotite, date_debut_cycle, est_surnumeraire)
 
     @property
     def id(self) -> UUID:
@@ -39,6 +42,10 @@ class Agent:
     def date_debut_cycle(self) -> date:
         return self._date_debut_cycle
 
+    @property
+    def est_surnumeraire(self) -> bool:
+        return self._est_surnumeraire
+
     def __eq__(self, other):
         if not isinstance(other, Agent):
             return NotImplemented
@@ -48,4 +55,4 @@ class Agent:
         return hash(self.id)
 
     def __repr__(self):
-        return f"Agent(id={self.id}, nom='{self.nom}', quotite={self.quotite}, date_debut_cycle={self.date_debut_cycle})"
+        return f"Agent(id={self.id}, nom='{self.nom}', quotite={self.quotite}, date_debut_cycle={self.date_debut_cycle}, est_surnumeraire={self.est_surnumeraire})"

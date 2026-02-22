@@ -26,8 +26,9 @@ class QuotiteField(models.FloatField):
 class AgentModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     nom = models.CharField(max_length=255)
-    quotite = QuotiteField(default=1.0) # Ajout de la valeur par défaut
+    quotite = QuotiteField(default=1.0)
     date_debut_cycle = models.DateField()
+    est_surnumeraire = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Agent"
@@ -36,28 +37,29 @@ class AgentModel(models.Model):
     def __str__(self):
         return self.nom
 
-    # Méthode pour convertir le modèle ORM en objet de domaine Agent
     def to_domain(self) -> Agent:
         return Agent(
             id=self.id,
             nom=self.nom,
-            quotite=self.quotite, # Correction: self.quotite est déjà un objet Quotite grâce à QuotiteField
-            date_debut_cycle=self.date_debut_cycle
+            quotite=self.quotite,
+            date_debut_cycle=self.date_debut_cycle,
+            est_surnumeraire=self.est_surnumeraire
         )
 
-    # Méthode pour mettre à jour le modèle ORM à partir d'un objet de domaine Agent
     @classmethod
     def from_domain(cls, agent: Agent) -> 'AgentModel':
         try:
             instance = cls.objects.get(id=agent.id)
             instance.nom = agent.nom
-            instance.quotite = agent.quotite.value # Stocker la valeur float
+            instance.quotite = agent.quotite.value
             instance.date_debut_cycle = agent.date_debut_cycle
+            instance.est_surnumeraire = agent.est_surnumeraire
         except cls.DoesNotExist:
             instance = cls(
                 id=agent.id,
                 nom=agent.nom,
-                quotite=agent.quotite.value, # Stocker la valeur float
-                date_debut_cycle=agent.date_debut_cycle
+                quotite=agent.quotite.value,
+                date_debut_cycle=agent.date_debut_cycle,
+                est_surnumeraire=agent.est_surnumeraire
             )
         return instance
