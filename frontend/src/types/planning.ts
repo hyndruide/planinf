@@ -22,3 +22,14 @@ export interface DayCoverage {
   required_count: number;
   gap: number;
 }
+
+export interface GeneratePlanningPayload {
+  agent_ids: string[];
+  politique_id: string;
+  duree_cycle: number;
+  date_debut: string; // YYYY-MM-DD
+}
+
+export interface GeneratePlanningResponse {
+  message: string;
+}
