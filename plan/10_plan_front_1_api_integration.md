@@ -75,6 +75,47 @@ Cet endpoint fournit les données pour afficher si l'effectif cible est atteint 
   ]
   ```
 
+### C. Endpoints CRUD (Création, Lecture, Modification, Suppression)
+
+Le backend expose des ViewSets complets pour administrer les ressources de base. Ces endpoints supportent les méthodes standards : `GET` (liste/détail), `POST` (création), `PUT`/`PATCH` (modification), `DELETE` (suppression).
+
+1.  **Gestion des Agents :**
+    - **URL :** `/api/v1/resources/agents/`
+    - **Payload POST type :** `{"nom": "Alice", "quotite": 1.0, "date_debut_cycle": "2026-01-01", "est_surnumeraire": false}`
+
+2.  **Gestion des Trames :**
+    - **URL :** `/api/v1/patterns/trames/`
+    - **Payload POST type :** `{"nom": "Cycle 12h", "duree_cycle_jours": 14, "sequence_data": [{"type": "WORK", "duration": 12}, {"type": "REST", "duration": 0}]}`
+
+3.  **Gestion des Besoins Quotidiens (Effectif cible) :**
+    - **URL :** `/api/v1/coverage/requirements/`
+    - **Payload POST type :** `{"day_of_week": 0, "required_count": 5}` *(Note: `day_of_week` va de 0=Lundi à 6=Dimanche)*
+
+4.  **Gestion des Affectations (Lien manuel Agent <-> Trame) :**
+    - **URL :** `/api/v1/planning/affectations/`
+
+5.  **Gestion des Absences :**
+    - **URL :** `/api/v1/planning/absences/`
+
+### D. Endpoint : Génération Automatique (Solveur OR-Tools)
+
+Cet endpoint déclenche l'intelligence artificielle pour générer automatiquement les trames et les affectations.
+
+- **URL :** `/api/v1/solver/generate/`
+- **Méthode :** `POST`
+- **Payload (JSON) :**
+  ```json
+  {
+    "agent_ids": ["uuid-1", "uuid-2", "uuid-3"],
+    "politique_id": "uuid-politique",
+    "duree_cycle": 84,
+    "date_debut": "2026-01-01"
+  }
+  ```
+- **Réponses :**
+  - `201 Created` : "Schedule generated successfully"
+  - `422 Unprocessable Entity` : "No feasible solution found" (Impossible de respecter les règles avec ces effectifs)
+
 ---
 
 ## 2. Tâches de Développement Frontend (React)
