@@ -71,9 +71,14 @@ def test_solver_respects_max_weekly_hours():
     result = solver.solve(agents, requirements, [politique], 14)
     
     # Then
-    # Le solveur actuel va trouver une solution car il ignore RegleHeuresMaxHebdo.
-    # On veut qu'il retourne None.
-    assert result is None, "Le solveur aurait dû échouer car le besoin dépasse la capacité légale (24h/semaine)"
+    # Grâce aux contraintes souples, le solveur trouve une solution légale
+    # mais en sous-effectif (il ne planifie que ce qui est légalement possible).
+    assert result is not None, "Le solveur doit retourner un planning (même en sous-effectif) plutôt que d'échouer"
+    
+    # Vérifions que la contrainte stricte est bien respectée : aucun agent ne dépasse 24h (2 shifts) sur 7 jours.
+    for agent_id, trame in result.items():
+        shifts_semaine_1 = sum(1 for s in trame.sequence[:7] if s.type.value == "WORK")
+        assert shifts_semaine_1 * 12 <= 24, "La règle des heures max doit être respectée"
 
 from compliance_engine.domain.regles import RegleReposDominical
 
@@ -106,7 +111,13 @@ def test_solver_respects_sunday_rest():
     
     # Then
     # On a besoin d'un agent le dimanche, mais la règle l'interdit.
-    assert result is None, "Le solveur aurait dû échouer car personne n'est autorisé à travailler le dimanche"
+    # Le solveur doit retourner un planning légal (personne le dimanche).
+    assert result is not None, "Le solveur doit retourner un planning"
+    
+    for agent_id, trame in result.items():
+        # Dimanche = index 6 et 13 (si Lundi = 0)
+        assert trame.sequence[6].type.value == "REST", "Personne ne doit travailler le 1er dimanche"
+        assert trame.sequence[13].type.value == "REST", "Personne ne doit travailler le 2ème dimanche"
 
 from compliance_engine.domain.regles import RegleHeuresMaxJournalieres
 
@@ -125,4 +136,8 @@ def test_solver_fails_if_12h_shift_violates_daily_max():
     result = solver.solve(agents, requirements, [politique], 7)
     
     # Then
-    assert result is None, "Le solveur ne doit pas autoriser de shift si la durée fixe (12h) dépasse la règle"
+    assert result is not None, "Le solveur doit retourner un planning vide car le shift dépasse la règle"
+    
+    # Vérifier que le planning est 100% vide
+    for agent_id, trame in result.items():
+        assert all(s.type.value == "REST" for s in trame.sequence), "Aucun agent ne doit travailler"

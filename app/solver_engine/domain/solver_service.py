@@ -36,12 +36,22 @@ class ScheduleSolverService:
             for d in range(num_days):
                 work[(a, d)] = model.NewBoolVar(f'work_n{a}d{d}')
 
-        # 3. Contraintes de couverture (Besoins Quotidiens)
-        # Pour simplifier, on suppose que le jour 0 (d=0) est un Lundi (0)
+        # 3. Contraintes de couverture (Contraintes Souples / Soft Constraints)
+        # Au lieu d'imposer sum() >= req, on autorise les écarts mais on les pénalise lourdement.
+        under_staffed = {}
+        over_staffed = {}
+        
         for d in range(num_days):
             day_of_week = d % 7
             req = req_map.get(day_of_week, 0)
-            model.Add(sum(work[(a, d)] for a in range(num_agents)) >= req)
+            
+            # Variables d'écart pour ce jour (max théorique d'écart = num_agents ou req)
+            under_staffed[d] = model.NewIntVar(0, max(req, 100), f'under_d{d}')
+            over_staffed[d] = model.NewIntVar(0, max(num_agents, 100), f'over_d{d}')
+            
+            # Équation d'équilibre: Présents + Manquants - Surnuméraires = Besoin
+            present = sum(work[(a, d)] for a in range(num_agents))
+            model.Add(present + under_staffed[d] - over_staffed[d] == req)
 
         # 4. Contraintes de Conformité Dynamiques
         from compliance_engine.domain.regles import RegleHeuresMaxHebdo, RegleReposDominical, RegleMoyenneHeuresHebdo, RegleHeuresMaxJournalieres, RegleReposMinQuotidien
@@ -93,7 +103,7 @@ class ScheduleSolverService:
                         # Attention à utiliser des entiers avec OR-Tools
                         model.Add(sum(work[(a, d)] * 12 for d in range(num_days)) * 7 <= moyenne * num_days)
 
-        # 5. Objectif : Répartition équitable des jours de travail
+        # 5. Objectif : Minimiser les écarts de couverture + Répartition équitable
         # Minimiser la différence de jours travaillés entre le max et le min
         total_shifts_per_agent = [sum(work[(a, d)] for d in range(num_days)) for a in range(num_agents)]
         min_shifts = model.NewIntVar(0, num_days, 'min_shifts')
@@ -101,8 +111,16 @@ class ScheduleSolverService:
         model.AddMinEquality(min_shifts, total_shifts_per_agent)
         model.AddMaxEquality(max_shifts, total_shifts_per_agent)
         
-        # On minimise l'écart entre celui qui travaille le plus et celui qui travaille le moins
-        model.Minimize(max_shifts - min_shifts)
+        difference_equite = max_shifts - min_shifts
+        
+        # Poids des pénalités :
+        # Sous-effectif est très grave (poids 1000)
+        # Sur-effectif est moins grave mais à éviter (poids 500)
+        # L'équité est le critère d'ajustement final (poids 1)
+        penalite_sous_effectif = sum(under_staffed[d] for d in range(num_days)) * 1000
+        penalite_sur_effectif = sum(over_staffed[d] for d in range(num_days)) * 500
+        
+        model.Minimize(penalite_sous_effectif + penalite_sur_effectif + difference_equite)
 
         # 6. Résolution
         solver = cp_model.CpSolver()
