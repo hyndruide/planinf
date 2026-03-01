@@ -53,3 +53,28 @@ def test_calculate_partial_time_balance():
     assert report.total_hours_worked == 24.0
     assert report.total_hours_due == 28.0
     assert report.balance == -4.0
+
+def test_rtt_acquisition():
+    # Given: Un contrat de 37.5h (base 35h + 2.5h RTT)
+    # L'utilisateur travaille 37.5h
+    base = ContractBase(hours_per_week=37.5, rtt_eligible=True)
+    quotite = Quotite(1.0)
+    
+    # 37.5h réparties sur la semaine
+    planning = [
+        PlannedDay(date(2026, 3, 1) + timedelta(days=i), 
+                   Shift(ShiftType.WORK, 7.5) if i < 5 else Shift(ShiftType.REST, 0))
+        for i in range(7)
+    ]
+    
+    calculator = TimeBalanceCalculator()
+    
+    # When
+    report = calculator.calculate(planning, base, quotite)
+    
+    # Then
+    # L'agent a travaillé ses 37.5h. La balance est de 0h.
+    # Mais il a acquis 2.5h de RTT (37.5 - 35.0).
+    assert report.total_hours_worked == 37.5
+    assert report.balance == 0.0
+    assert report.rtt_hours_earned == 2.5
