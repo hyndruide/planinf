@@ -13,5 +13,6 @@ urlpatterns = [
     path('api/v1/patterns/', include('pattern_engine.urls')),
     path('api/v1/planning/', include('applied_planning.urls')),
     path('api/v1/coverage/', include('demand_management.urls')),
+    path('api/v1/compliance/', include('compliance_engine.urls')),
     path('api/v1/solver/', include('solver_engine.urls')),
 ]
