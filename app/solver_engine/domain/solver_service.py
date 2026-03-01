@@ -43,14 +43,39 @@ class ScheduleSolverService:
             req = req_map.get(day_of_week, 0)
             model.Add(sum(work[(a, d)] for a in range(num_agents)) >= req)
 
-        # 4. Contraintes de Conformité (Simplifiées pour ce MVP)
-        # La règle RegleReposMinQuotidien(11h) est techniquement respectée si on fait
-        # au maximum 1 shift de 12h par période de 24h.
-        # Ajoutons une contrainte simple : max 3 jours de travail consécutifs
-        # pour forcer une rotation réaliste.
-        for a in range(num_agents):
-            for d in range(num_days - 3):
-                model.Add(work[(a, d)] + work[(a, d + 1)] + work[(a, d + 2)] + work[(a, d + 3)] <= 3)
+        # 4. Contraintes de Conformité Dynamiques
+        from compliance_engine.domain.regles import RegleHeuresMaxHebdo, RegleReposDominical, RegleMoyenneHeuresHebdo
+        
+        for politique in politiques:
+            for regle in politique.regles:
+                # RegleHeuresMaxHebdo
+                if isinstance(regle, RegleHeuresMaxHebdo):
+                    max_hours = regle.max_heures
+                    for a in range(num_agents):
+                        # On parcourt chaque fenêtre glissante de 7 jours
+                        for d in range(num_days - 6):
+                            model.Add(sum(work[(a, d+i)] * 12 for i in range(7)) <= max_hours)
+
+                # RegleReposDominical
+                elif isinstance(regle, RegleReposDominical):
+                    freq = regle.frequence
+                    for a in range(num_agents):
+                        # On trouve les indices correspondant aux dimanches (d % 7 == 6 si d=0 est lundi)
+                        dimanches = [d for d in range(num_days) if d % 7 == 6]
+                        # On parcourt chaque fenêtre de N dimanches consécutifs
+                        for i in range(len(dimanches) - freq + 1):
+                            batch = dimanches[i : i + freq]
+                            # Au moins un dimanche doit être REST (0)
+                            model.Add(sum(work[(a, d)] for d in batch) <= freq - 1)
+
+                # RegleMoyenneHeuresHebdo
+                elif isinstance(regle, RegleMoyenneHeuresHebdo):
+                    moyenne = regle.moyenne_heures
+                    for a in range(num_agents):
+                        # Somme totale <= moyenne * nb_semaines
+                        # nb_semaines = num_days / 7
+                        # Attention à utiliser des entiers avec OR-Tools
+                        model.Add(sum(work[(a, d)] * 12 for d in range(num_days)) * 7 <= moyenne * num_days)
 
         # 5. Objectif : Répartition équitable des jours de travail
         # Minimiser la différence de jours travaillés entre le max et le min

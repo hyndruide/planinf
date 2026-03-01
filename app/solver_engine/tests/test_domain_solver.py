@@ -45,3 +45,65 @@ def test_solver_finds_optimal_schedule():
     for agent_id, trame in result.items():
         assert trame.duree_cycle_jours == duree_cycle
         assert len(trame.sequence) == duree_cycle
+
+from compliance_engine.domain.regles import RegleHeuresMaxHebdo
+
+def test_solver_respects_max_weekly_hours():
+    # Given
+    # 4 agents
+    agents = [Agent(uuid4(), f"A{i}", Quotite(1.0), date(2026, 1, 1)) for i in range(4)]
+    
+    # Besoin : 2 agents par jour (14 shifts par semaine)
+    requirements = [DailyRequirement(day, 2) for day in range(7)]
+    
+    # Règle stricte : Max 24h par semaine (soit 2 jours de 12h)
+    # Avec 4 agents, on peut couvrir au max 4 * 2 = 8 shifts par semaine.
+    # Or on en demande 14. C'est IMPOSSIBLE.
+    politique = PolitiqueConformite(
+        uuid4(), 
+        "Stricte", 
+        [RegleHeuresMaxHebdo(24)] 
+    )
+    
+    solver = ScheduleSolverService()
+    
+    # When
+    result = solver.solve(agents, requirements, [politique], 14)
+    
+    # Then
+    # Le solveur actuel va trouver une solution car il ignore RegleHeuresMaxHebdo.
+    # On veut qu'il retourne None.
+    assert result is None, "Le solveur aurait dû échouer car le besoin dépasse la capacité légale (24h/semaine)"
+
+from compliance_engine.domain.regles import RegleReposDominical
+
+def test_solver_respects_sunday_rest():
+    # Given
+    # 2 agents, 14 jours (2 dimanches)
+    agents = [Agent(uuid4(), f"A{i}", Quotite(1.0), date(2026, 1, 1)) for i in range(2)]
+    
+    # Besoin : 1 agent par jour (7 jours sur 7)
+    requirements = [DailyRequirement(day, 1) for day in range(7)]
+    
+    # Règle : REPOS obligatoire TOUS les dimanches (frequence=1 veut dire 1 repos sur 1 dimanche)
+    # Attends, la règle dans regles.py dit : 
+    # for i in range(0, len(sundays), self.frequence): 
+    # batch = sundays[i:i+self.frequence]
+    # has_rest = any(d.shift.type != ShiftType.WORK for d in batch)
+    # if not has_rest: return False
+    # Donc frequence=1 veut dire que chaque batch de 1 dimanche doit avoir un repos. 
+    # Donc chaque dimanche est en repos.
+    politique = PolitiqueConformite(
+        uuid4(), 
+        "PasDeDimanche", 
+        [RegleReposDominical(1)] 
+    )
+    
+    solver = ScheduleSolverService()
+    
+    # When
+    result = solver.solve(agents, requirements, [politique], 14)
+    
+    # Then
+    # On a besoin d'un agent le dimanche, mais la règle l'interdit.
+    assert result is None, "Le solveur aurait dû échouer car personne n'est autorisé à travailler le dimanche"
