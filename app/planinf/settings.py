@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'demand_management',
     'rest_framework',
     'solver_engine',
+    'time_tracking',
 ]
 
 MIDDLEWARE = [
