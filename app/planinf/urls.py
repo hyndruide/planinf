@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/v1/coverage/', include('demand_management.urls')),
     path('api/v1/compliance/', include('compliance_engine.urls')),
     path('api/v1/solver/', include('solver_engine.urls')),
+    path('api/v1/time/', include('time_tracking.urls')),
 ]

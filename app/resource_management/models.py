@@ -29,6 +29,8 @@ class AgentModel(models.Model):
     quotite = QuotiteField(default=1.0)
     date_debut_cycle = models.DateField()
     est_surnumeraire = models.BooleanField(default=False)
+    base_horaire = models.FloatField(default=35.0)
+    rtt_eligible = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Agent"
@@ -43,7 +45,9 @@ class AgentModel(models.Model):
             nom=self.nom,
             quotite=self.quotite,
             date_debut_cycle=self.date_debut_cycle,
-            est_surnumeraire=self.est_surnumeraire
+            est_surnumeraire=self.est_surnumeraire,
+            base_horaire=self.base_horaire,
+            rtt_eligible=self.rtt_eligible
         )
 
     @classmethod
@@ -54,12 +58,16 @@ class AgentModel(models.Model):
             instance.quotite = agent.quotite.value
             instance.date_debut_cycle = agent.date_debut_cycle
             instance.est_surnumeraire = agent.est_surnumeraire
+            instance.base_horaire = agent.base_horaire
+            instance.rtt_eligible = agent.rtt_eligible
         except cls.DoesNotExist:
             instance = cls(
                 id=agent.id,
                 nom=agent.nom,
                 quotite=agent.quotite.value,
                 date_debut_cycle=agent.date_debut_cycle,
-                est_surnumeraire=agent.est_surnumeraire
+                est_surnumeraire=agent.est_surnumeraire,
+                base_horaire=agent.base_horaire,
+                rtt_eligible=agent.rtt_eligible
             )
         return instance

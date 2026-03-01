@@ -4,7 +4,7 @@ from datetime import date
 from .quotite import Quotite
 
 class Agent:
-    def __init__(self, id: UUID, nom: str, quotite: Quotite, date_debut_cycle: date, est_surnumeraire: bool = False):
+    def __init__(self, id: UUID, nom: str, quotite: Quotite, date_debut_cycle: date, est_surnumeraire: bool = False, base_horaire: float = 35.0, rtt_eligible: bool = False):
         if not isinstance(id, UUID):
             raise TypeError("L'ID doit être une instance de UUID.")
         if not nom or not isinstance(nom, str):
@@ -21,10 +21,12 @@ class Agent:
         self._quotite = quotite
         self._date_debut_cycle = date_debut_cycle
         self._est_surnumeraire = est_surnumeraire
+        self._base_horaire = float(base_horaire)
+        self._rtt_eligible = rtt_eligible
 
     @classmethod
-    def create(cls, nom: str, quotite: Quotite, date_debut_cycle: date, est_surnumeraire: bool = False) -> 'Agent':
-        return cls(uuid4(), nom, quotite, date_debut_cycle, est_surnumeraire)
+    def create(cls, nom: str, quotite: Quotite, date_debut_cycle: date, est_surnumeraire: bool = False, base_horaire: float = 35.0, rtt_eligible: bool = False) -> 'Agent':
+        return cls(uuid4(), nom, quotite, date_debut_cycle, est_surnumeraire, base_horaire, rtt_eligible)
 
     @property
     def id(self) -> UUID:
@@ -45,6 +47,14 @@ class Agent:
     @property
     def est_surnumeraire(self) -> bool:
         return self._est_surnumeraire
+
+    @property
+    def base_horaire(self) -> float:
+        return self._base_horaire
+
+    @property
+    def rtt_eligible(self) -> bool:
+        return self._rtt_eligible
 
     def __eq__(self, other):
         if not isinstance(other, Agent):
