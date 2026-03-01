@@ -1,14 +1,14 @@
 # app/solver_engine/services.py
 from typing import List, Optional
 from uuid import UUID
-from datetime import date
+from datetime import date, timedelta
 from django.db import transaction
 
 from resource_management.models import AgentModel
 from demand_management.models import DailyRequirementModel
 from compliance_engine.models import PolitiqueConformiteModel
 from pattern_engine.models import TrameModel
-from applied_planning.models import AffectationModel
+from applied_planning.models import AffectationModel, AbsenceModel
 
 from .domain.solver_service import ScheduleSolverService
 
@@ -26,9 +26,25 @@ def generate_and_save_schedule(
     requirements = [rm.to_domain() for rm in DailyRequirementModel.objects.all()]
     politiques = [PolitiqueConformiteModel.objects.get(id=pid).to_domain() for pid in politique_ids]
     
+    # Récupérer les absences sur la période pour ces agents
+    date_fin = date_debut + timedelta(days=duree_cycle - 1)
+    absences_models = AbsenceModel.objects.filter(
+        agent_id__in=agent_ids,
+        date_debut__lte=date_fin,
+        date_fin__gte=date_debut
+    )
+    absences = [am.to_domain() for am in absences_models]
+    
     # 2. Appel du solveur
     solver = ScheduleSolverService()
-    result = solver.solve(agents, requirements, politiques, duree_cycle)
+    result = solver.solve(
+        agents, 
+        requirements, 
+        politiques, 
+        duree_cycle,
+        date_debut=date_debut,
+        absences=absences
+    )
     
     if not result:
         return False

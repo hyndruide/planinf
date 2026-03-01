@@ -1,4 +1,5 @@
 # app/solver_engine/domain/solver_service.py
+from datetime import date, timedelta
 from typing import List, Dict, Optional
 from uuid import UUID, uuid4
 from ortools.sat.python import cp_model
@@ -8,6 +9,7 @@ from demand_management.domain.requirement import DailyRequirement
 from compliance_engine.domain.politique import PolitiqueConformite
 from pattern_engine.domain.trame import Trame
 from pattern_engine.domain.shift import Shift, ShiftType
+from applied_planning.domain.absence import Absence
 
 class ScheduleSolverService:
     def solve(
@@ -15,13 +17,16 @@ class ScheduleSolverService:
         agents: List[Agent], 
         requirements: List[DailyRequirement], 
         politiques: List[PolitiqueConformite], 
-        duree_cycle_jours: int
+        duree_cycle_jours: int,
+        date_debut: Optional[date] = None,
+        absences: Optional[List[Absence]] = None
     ) -> Optional[Dict[UUID, Trame]]:
         """
         Génère les trames optimales pour un ensemble d'agents.
         """
         num_agents = len(agents)
         num_days = duree_cycle_jours
+        absences = absences or []
         
         # Mapping des besoins par jour de la semaine (0=Lundi, 6=Dimanche)
         req_map = {req.day_of_week: req.required_count for req in requirements}
@@ -36,6 +41,20 @@ class ScheduleSolverService:
             for d in range(num_days):
                 work[(a, d)] = model.NewBoolVar(f'work_n{a}d{d}')
 
+        # 2.bis. Injection des absences (Desiderata)
+        if date_debut:
+            for a in range(num_agents):
+                agent = agents[a]
+                # Filtrer les absences pour cet agent
+                agent_absences = [abs for abs in absences if abs.agent_id == agent.id]
+                for d in range(num_days):
+                    current_date = date_debut + timedelta(days=d)
+                    for absence in agent_absences:
+                        if absence.includes_date(current_date):
+                            # L'agent est absent, il ne peut pas travailler ce jour-là
+                            model.Add(work[(a, d)] == 0)
+                            break
+                            
         # 3. Contraintes de couverture (Contraintes Souples / Soft Constraints)
         # Au lieu d'imposer sum() >= req, on autorise les écarts mais on les pénalise lourdement.
         under_staffed = {}

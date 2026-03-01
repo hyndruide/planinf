@@ -141,3 +141,35 @@ def test_solver_fails_if_12h_shift_violates_daily_max():
     # Vérifier que le planning est 100% vide
     for agent_id, trame in result.items():
         assert all(s.type.value == "REST" for s in trame.sequence), "Aucun agent ne doit travailler"
+
+from applied_planning.domain.absence import Absence, TypeAbsence
+
+def test_solver_respects_absences():
+    # Given
+    agent_id = uuid4()
+    agents = [Agent(agent_id, "Agent 1", Quotite(1.0), date(2026, 3, 1))]
+    requirements = [DailyRequirement(day, 1) for day in range(7)] # Besoin de 1 tous les jours
+    politique = PolitiqueConformite(uuid4(), "Base", [])
+    
+    # L'agent est absent le premier jour (2026-03-01)
+    absence = Absence.create(agent_id, date(2026, 3, 1), date(2026, 3, 1), TypeAbsence.CONGE_PAYE)
+    
+    solver = ScheduleSolverService()
+    
+    # When
+    result = solver.solve(
+        agents, 
+        requirements, 
+        [politique], 
+        7, 
+        date_debut=date(2026, 3, 1), 
+        absences=[absence]
+    )
+    
+    # Then
+    assert result is not None
+    trame = result[agent_id]
+    
+    # Le jour 0 (2026-03-01) doit être REST car l'agent est absent, 
+    # même si requirement = 1
+    assert trame.sequence[0].type.value == "REST", "Le jour d'absence doit être un repos forcé"
