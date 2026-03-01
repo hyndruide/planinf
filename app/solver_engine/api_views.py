@@ -8,13 +8,13 @@ from .services import generate_and_save_schedule
 class GenerateScheduleAPIView(APIView):
     def post(self, request):
         agent_ids = request.data.get('agent_ids')
-        politique_id = request.data.get('politique_id')
+        politique_ids = request.data.get('politique_ids', [])
         duree_cycle = int(request.data.get('duree_cycle', 84))
         date_debut_str = request.data.get('date_debut')
         
-        if not agent_ids or not politique_id or not date_debut_str:
+        if not agent_ids or not politique_ids or not date_debut_str:
             return Response(
-                {"error": "agent_ids, politique_id and date_debut are required"}, 
+                {"error": "agent_ids, politique_ids and date_debut are required"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
             
@@ -23,7 +23,7 @@ class GenerateScheduleAPIView(APIView):
         except ValueError:
             return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
             
-        success = generate_and_save_schedule(agent_ids, politique_id, duree_cycle, date_debut)
+        success = generate_and_save_schedule(agent_ids, politique_ids, duree_cycle, date_debut)
         
         if success:
             return Response({"message": "Schedule generated successfully"}, status=status.HTTP_201_CREATED)

@@ -35,7 +35,7 @@ def test_solver_finds_optimal_schedule():
     
     # When
     # Le solveur doit retourner un dictionnaire associant chaque UUID d'agent à une Trame générée
-    result = solver.solve(agents, requirements, politique, duree_cycle)
+    result = solver.solve(agents, requirements, [politique], duree_cycle)
     
     # Then
     assert result is not None, "Le solveur aurait dû trouver une solution"

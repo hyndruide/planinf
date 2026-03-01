@@ -53,7 +53,7 @@ def test_acceptance_full_api_workflow():
     # 4. Lancement de la génération automatique via le Solveur
     generate_payload = {
         "agent_ids": agent_ids,
-        "politique_id": str(politique.id),
+        "politique_ids": [str(politique.id)],
         "duree_cycle": 14,
         "date_debut": "2026-01-01"
     }

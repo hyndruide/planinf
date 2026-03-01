@@ -14,7 +14,7 @@ class ScheduleSolverService:
         self, 
         agents: List[Agent], 
         requirements: List[DailyRequirement], 
-        politique: PolitiqueConformite, 
+        politiques: List[PolitiqueConformite], 
         duree_cycle_jours: int
     ) -> Optional[Dict[UUID, Trame]]:
         """

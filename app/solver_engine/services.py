@@ -14,7 +14,7 @@ from .domain.solver_service import ScheduleSolverService
 
 def generate_and_save_schedule(
     agent_ids: List[UUID], 
-    politique_id: UUID, 
+    politique_ids: List[UUID], 
     duree_cycle: int, 
     date_debut: date
 ) -> bool:
@@ -24,11 +24,11 @@ def generate_and_save_schedule(
     # 1. Préparation des données
     agents = [AgentModel.objects.get(id=aid).to_domain() for aid in agent_ids]
     requirements = [rm.to_domain() for rm in DailyRequirementModel.objects.all()]
-    politique = PolitiqueConformiteModel.objects.get(id=politique_id).to_domain()
+    politiques = [PolitiqueConformiteModel.objects.get(id=pid).to_domain() for pid in politique_ids]
     
     # 2. Appel du solveur
     solver = ScheduleSolverService()
-    result = solver.solve(agents, requirements, politique, duree_cycle)
+    result = solver.solve(agents, requirements, politiques, duree_cycle)
     
     if not result:
         return False
