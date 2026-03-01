@@ -107,3 +107,22 @@ def test_solver_respects_sunday_rest():
     # Then
     # On a besoin d'un agent le dimanche, mais la règle l'interdit.
     assert result is None, "Le solveur aurait dû échouer car personne n'est autorisé à travailler le dimanche"
+
+from compliance_engine.domain.regles import RegleHeuresMaxJournalieres
+
+def test_solver_fails_if_12h_shift_violates_daily_max():
+    # Given
+    agents = [Agent(uuid4(), "A1", Quotite(1.0), date(2026, 1, 1))]
+    requirements = [DailyRequirement(0, 1)] # Lundi
+    
+    # Règle : Max 10h par jour
+    # Or on travaille par shifts de 12h.
+    politique = PolitiqueConformite(uuid4(), "Base", [RegleHeuresMaxJournalieres(10)])
+    
+    solver = ScheduleSolverService()
+    
+    # When
+    result = solver.solve(agents, requirements, [politique], 7)
+    
+    # Then
+    assert result is None, "Le solveur ne doit pas autoriser de shift si la durée fixe (12h) dépasse la règle"

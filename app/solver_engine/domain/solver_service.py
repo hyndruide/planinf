@@ -44,12 +44,28 @@ class ScheduleSolverService:
             model.Add(sum(work[(a, d)] for a in range(num_agents)) >= req)
 
         # 4. Contraintes de Conformité Dynamiques
-        from compliance_engine.domain.regles import RegleHeuresMaxHebdo, RegleReposDominical, RegleMoyenneHeuresHebdo
+        from compliance_engine.domain.regles import RegleHeuresMaxHebdo, RegleReposDominical, RegleMoyenneHeuresHebdo, RegleHeuresMaxJournalieres, RegleReposMinQuotidien
         
         for politique in politiques:
             for regle in politique.regles:
+                # RegleHeuresMaxJournalieres
+                if isinstance(regle, RegleHeuresMaxJournalieres):
+                    if regle.max_heures < 12:
+                        # Impossible de travailler avec des shifts de 12h
+                        for a in range(num_agents):
+                            for d in range(num_days):
+                                model.Add(work[(a, d)] == 0)
+
+                # RegleReposMinQuotidien
+                elif isinstance(regle, RegleReposMinQuotidien):
+                    if (24 - 12) < regle.min_heures_repos:
+                        # Impossible de travailler avec des shifts de 12h
+                        for a in range(num_agents):
+                            for d in range(num_days):
+                                model.Add(work[(a, d)] == 0)
+
                 # RegleHeuresMaxHebdo
-                if isinstance(regle, RegleHeuresMaxHebdo):
+                elif isinstance(regle, RegleHeuresMaxHebdo):
                     max_hours = regle.max_heures
                     for a in range(num_agents):
                         # On parcourt chaque fenêtre glissante de 7 jours
