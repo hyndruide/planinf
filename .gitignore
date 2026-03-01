@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# not pusahble
+vba_extracted
+analyze_xlsm.py
+app.jpg
+extract_formulas.py
+Planning Cycles AS.xlsm
+read_odt.py
+fonctions.odt
