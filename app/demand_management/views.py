@@ -1,5 +1,6 @@
 # app/demand_management/views.py
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from datetime import datetime
@@ -10,6 +11,28 @@ from .services import get_coverage_analysis
 class DailyRequirementViewSet(viewsets.ModelViewSet):
     queryset = DailyRequirementModel.objects.all()
     serializer_class = DailyRequirementSerializer
+
+    @action(detail=False, methods=['post'])
+    def bulk(self, request):
+        data = request.data
+        if not isinstance(data, list):
+            return Response({"error": "Expected a list of requirements"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        updated_or_created = []
+        for item in data:
+            day = item.get("day_of_week")
+            count = item.get("required_count")
+            if day is None or count is None:
+                continue
+                
+            obj, created = DailyRequirementModel.objects.update_or_create(
+                day_of_week=day,
+                defaults={'required_count': count}
+            )
+            updated_or_created.append(obj)
+            
+        serializer = self.get_serializer(updated_or_created, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CoverageAnalysisAPIView(APIView):
     def get(self, request):
